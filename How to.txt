@@ -1,0 +1,776 @@
+VIDEO 1 :
+
+1. Create Project
+2. Create scaffolding and authentication
+3. Create database, and setting the database in .env
+4. Create https (options) and setting the .env of url and the name of the project (valet secure)
+5. php artisan make:model Discussion -m
+   $table->integer('user_id');
+   $table->string('title');
+   $table->text('content');
+   $table->string('slug');
+   $table->integer('channel_id'); //ini buat topic or categories
+6. php artisan make:model Channel -m
+   $table->string('name');
+   $table->string('slug');
+7. Buat Mass Assignment protected [], tetapi mass assignment nya di dalam model baru
+   yaitu Model.php, lo buat class baru di situ , extends as BaseModel, dan lu buat
+   protected $guarded =[]
+
+   <?php
+
+   namespace App;
+
+   use Illuminate\Database\Eloquent\Model as BaseModel;
+
+   class Model extends BaseModel
+   {
+      protected $guarded = [] // ini bararti filled yang di protect itu 0 (boleh diisi)
+   }
+
+   di dalam Discussion dan Channel Model , hapus bagian  ini : karena sudah tidak dibutuhin
+
+            "use Illuminate\Database\Eloquent\Model"
+
+8. php artisan make:seeder ChannelsTableSeeder // untuk ngebuat factory atau build in database sesuai yang kita inginkan
+
+   Edit :
+   public function run(){
+      Channel::crate([           //line ini jangan lupa import Channel modelnya
+         'name' => 'Laravel 7.0',
+         'slug' => str_slug('Laravel 7.0')
+      ]);
+
+      Channel::crate([           //line ini jangan lupa import Channel modelnya
+         'name' => 'Vue Js 3',
+         'slug' => str_slug('Vue Js 3')
+      ]);
+
+      Channel::crate([           //line ini jangan lupa import Channel modelnya
+         'name' => 'Angular 7',
+         'slug' => str_slug('Angular 7')
+      ]);
+
+      Channel::crate([           //line ini jangan lupa import Channel modelnya
+         'name' => 'Node JS',
+         'slug' => str_slug('Node Js')
+      ]);
+   }
+
+9. Edit DatabaseSeeder.php
+   public function run(){
+      $this -> call(ChannelsTableSeeder::class);
+   }
+
+10. php artisan migrate --seed
+11. Setting $table->string('slug') menjadi unique di tiap2 migration yang punya slug, contoh :
+   $table->string('slug') ->unique();
+
+12. Ubah namespace App; di semua file menjadi nama aplikasi kita, caranya :
+    >>php artidan app:name LaravelForum
+    kalau udah nanti keubah sendiri kok, kalau ada yang belum keubah, ganti manual aja
+    di tiap tiap namespace App; --> namespace LaravelForum;
+
+============================================================================================================================================
+Video 2 :
+
+1. Edit AppServiceProvider.php untuk menampilkan data data yang ada di dalam database
+   public function boot(){
+      View::share('channels', Channel::all());
+   }
+2. Edit pada bagian app.blade.php utnuk menampilkan data variable yang udah dibuat di nomor 1
+      syntax basic : {{$channels}}  // jangan lupa dollar nya
+3. Edit menjadi seperti ini :
+   @Auth
+            <main class="container py-4">
+                <div class="row">
+                    <div class="col-md-4">
+                        <ul class="list-grou">
+                            @foreach ($channels as $channel)
+                                <li class="list-group-item">
+                                    {{$channel->name}}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    <div class="col-md-8">
+                        @yield('content')
+                    </div>
+                </div>
+
+
+            </main>
+        @else
+            <main class="py-4">
+                @yield('content')
+            </main>
+        @endauth
+4. Edit pada home.blade.php (ini hanya untuk mempercantik)
+   hapus div ke 3 dari atas sehinnga yang tersisa hanya <div class="card"> dan seisinya.
+
+5. Buat Button tepat paling atas (di atas div card) di home.blade.php
+   <div class="d-flex justify-content-end mb-2">
+      <a href="" class="btn btn-success">Add Discussion</a>
+   </div>
+
+6. php artisan make:controller DusController --resource
+7. Setting web.php (routing)
+   Route::resource('/dus', 'DusContoller')
+8. Edit DusContoller.php
+   public function create(){
+      return view('discussions.create')
+   }
+
+9.    Buat folder discussions dan buat file create.blade.php utnuk menampilkan form create
+10.   Copy paste dari home ke create.blade.php dan edit edit.
+11.   Edit tombol Add create pada home ('/')
+      <a href="{{ route('discussion.create') }}" class="btn btn-success"> Add Discussion</a>
+
+12.   Di discussions\create.blade.php , buatlah form dan button
+
+      <form action="" method="POST">
+            @csrf
+            <div class="form-group">
+               <label for="title">Title</label>
+               <input type="text" name="title" class="form-control">
+            </div>
+            <div class="form-group">
+               <label for="content">Content</label>
+               <textarea name="content" id="content" cols="5" rows="5" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+               <select name="channel" id="channel" class="form-control">
+                  @foreach ($channels as $channel)
+                        <option value="{{$channel->id}}">{{$channel->name}}</option> //value merupakan id darti si channel untuk pembeda
+                  @endforeach
+               </select>
+            </div>
+
+            <button class="btn btn-success float-right">Create Discussions</button>
+      </form>
+
+13.   Yang perlu diingat dalam point nomor 12 yaitu,
+      1. Setiap Div memiliki class form group
+      2. Setiap input text area dan select memiliki class form-control dan name (sesuai colum name database)
+      3. id="" samakan saja seperti name
+      4. pada form option , value nya itu si id dari table yang ada di database
+
+14. jangn lupa form nya pakai method post dan route nya disetting juga ke dus.store
+
+================================================================================================================================
+Video 3 :
+   Setting the front end :
+
+1. https://cdnjs.com/libraries/trix
+2. copy yang css dan Js
+3. @yield('css") dan @yield('js') pada app.blade.php, terdapat di dalam head dan di paling bawah body
+4. di dalam home.blade.php buat section css dan js dan di dalamnya memuat link style dan link script
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.2.1/trix.css">
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/trix/1.2.1/trix.js"></script>
+
+5. Baca docs nya, cari input form untuk dimasukkan ke dalam page create.
+6. ubah text area tag utnuk mengubah text area menggunakan trix
+   <input id="content" type="hidden" name="content">  // ingat, id selalu the name of atributes in database
+   <trix-editor input="content"></trix-editor>
+7. di dalam app.blade.php , script yang paling atas, delete word defer dan pindahkan kebawah.
+
+       Setting the back end :
+
+8. Inject a custom request so we that we have a validation rules
+9. >>php artisan make:request CreateDiscussionRequest
+10. Edit CreateDiscussionRequest.php
+   public function rules(){
+      return[
+         'title' => 'required',
+         'content' => 'required',
+         'channel'=>'required'
+      ];
+   }
+
+   public function authorize (){
+      return true;
+   }
+11. Edit DiscussionController.php, tambahkan construct nya
+   buat apa ? ini berarti all our routes can be access when we authenticated (udah login)
+
+   public function __construct(){
+      $this -> middleware('auth')->only(['create','store']);
+   }
+
+
+   bagian store bisa diedit (store) ada 2 cara , satu kaya gini :
+
+   public function store(CreateDiscussionRequest $request){
+      Discussion::create([
+         'title'=>$request->title,
+         'content'=>$request->content,
+         'channel_id'=>$request->channel
+         'user_id'=>auth()->id()
+         'slug' => Str::slug($request->title) // jangan lupa tambahkan Str class di atasnya
+      ]);
+
+   }
+
+   yang kedua caranya kaya gini :
+
+   public function store(CreateDiscussionRequest $request){
+      auth()->user()->discussions()->create([
+         'title'=>$request->title,
+         'content'=>$request->content,
+         'channel_id'=>$request->channel
+         'slug' => Str::slug($request->title) // jangan lupa tambahkan Str class di atasnya
+      ]);
+
+   }
+
+   kalau lu pakai cara kedua, lu harus setting relationshipnya
+   di model User.php
+
+12.   Edit User.php (model) untuk relationshipnya di model user
+
+      public function discussions(){
+         return $this -> hasMany(Discussion::class);
+      }
+
+13. Balik lagi ke Controller, DiscussionController.php , edit.
+
+    pada function store, tambahkan flashmassage dan session:
+    session()->flash('success','Discussion posted')
+    return redirect()->route('discussion.index');
+
+    public function index()
+    {
+       return view('discussion.index',[
+          Discussion::paginate(5)
+       ]);
+    }
+
+    // di dalam return view ini ada second parameter, ini berarti kita ingin
+    // menampilkan sharing data to the view
+
+14. Add files to discussions folder pada resources.
+15. Edit index.blade.php pada folder discussions yang telah dibuat di nomor 14
+    -> copy paste dari home
+    -> sisain yang tersisa hanya sampai 'Add Discussion' button
+    -> sisanya copas dari home dan bawahnya kosongin untuk nampilin discussions data
+
+16. pada index.blade.php ini untukmenampilkan diskusi diskusi yang ada di database
+    tambahkan @foreach
+    @foreach($discussions as discussion)
+    <div class="card">
+        <div class="card-header">
+        {{ $discussion-> title }}
+        </div>
+
+        <div class="card-body">
+         {!! $discussion-> content!!} // kenapa ada tanda serunya ? karena kita pakai trix
+        </div>
+    </div>
+    @endforeach
+
+17. Karena ini menampilkan all discussions, maka pada  AppServiceProvider tambahkan share ini juga:
+    View::share('channels', Channel::all());
+
+
+========================================================================================================================================================
+
+VIDEO 4 :
+
+1. Pindahkan button "Add Discussions" yang ada dipojok kanan atas menjadi di dalam side navbar dan masukkan channel dalam card
+   <a href="{{route('dus.create')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Add Disucssion</a>
+   <div class="card">
+         <div class="card-header">
+            Channels
+         </div>
+         <div class="card-body">
+            <ul class="list-group">
+               @foreach ($channels as $channel)
+                     <li class="list-group-item">
+                        {{$channel->name}}
+                     </li>
+               @endforeach
+            </ul>
+         </div>
+   </div>
+2. Install gravatar , untuk menampilkan auhor who create discussions
+3. Install Gravatar :
+   - copy paste script berikut kedalam required composer.json
+      "thomaswelton/laravel-gravatar": "~1.0"
+   - >> composer update
+   link : https://github.com/thomaswelton/laravel-gravatar
+   - edit juga config.php nya ,
+
+4. buat img src di card header of discussion
+   <img src="{{Gravatar::src($discussion->author->email)}}" alt="">
+
+5. Jangan lupa buat relation di discussion model ,
+   public function author(){
+      return $this -> belongsTo(User::class, 'user_id');
+   }
+
+6. Buat Button view di pojok kanan atas sebelahan sama author name
+   ubah html berikut di dalam index.blade.php di dalam card-header div
+   <div class="d-flex justify-content-between">
+   <div>
+         <img width="40px" height="40px" style="border-radius: 50%" src="{{Gravatar::src($discussion->author->email)}}" alt="">
+         <strong class="ml-2">
+            {{$discussion->author->name}}
+         </strong>
+   </div>
+   <div>
+         <a href="" class="btn btn-success btn-sm">View</a>
+   </div>
+   </div>
+
+7. Setting href untuk button view .
+   <a href="route('discussion.show', $discussion->slug)" class="btn btn-success btn-sm">View</a>
+
+
+8. Edit model Discussion.php , buat function getRouteKeyName()
+   public function getRouteKeyName(){
+      return 'slug';
+   }
+
+9. Pada DusContoller edit public function show nya .
+   public function show(Discussion $discussion){
+      dd($discussion)
+   }
+
+10. Percantik index.blade.php pada discussion sehingga yang ditampilkan hanya title
+    dan untuk lihat lebih bisa klik view
+    {{$discussion -> title}}
+
+11. Untuk melihat page view, berarti tinggal kita tambahin show.blade.php dong di discussions folder
+
+12. Copas home.blade.php ke dalam show.blade.php dan edit pada bagian card header dan body yang sebelah kanannya
+    jadi seperti ini (intinya cuma mau liat view 1 discussion):
+
+   <div class="card">
+      <div class="card-header">
+         <div class="d-flex justify-content-between">
+               <div>
+                  <img width="40px" height="40px" style="border-radius: 50%" src="{{Gravatar::src($discussion->author->email)}}" alt="">
+                  <strong class="ml-2">
+                     {{$discussion->author->name}}
+                  </strong>
+               </div>
+               <div>
+                  <a href="{{route('dus.show', $discussion->slug)}}" class="btn btn-success btn-sm">View</a>
+               </div>
+         </div>
+
+      </div>
+
+      <div class="card-body">
+         {{$discussion->title}}
+      </div>
+   </div>
+
+13. Atur public function show yang ada di controller
+    public function show(Discussion $discussion){
+       return view('discussions.show',[
+          'discussion'=> $discussion
+       ]);
+    }
+
+============================================================================================================================================
+
+Video 5 :
+
+1. Edit layout app.blade.php
+   jika auth :
+      tampilkan layout full dengan sidebar
+   else :
+      tampilkan layout full dengan side bar tapi ada tombol Sign In to Add Discussion
+
+   @Auth
+         <a href="{{route('dus.create')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Add Disucssion</a>
+   @else
+         <a href="{{route('login')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Sign In</a>
+   @endauth
+
+2. Kan sudah muncul, jika belum login :
+   1. Button Sign in to add discussion
+   2. Channel
+   3. Discussion
+   sekarang kita pingin, kalau button sign in to add discussionnya diklik
+   langsung redirect ke homepage login, tanpa harus menggunakan layout yang sama .
+   caranya pakai if.
+
+3. tambahkan if di app.blade.php:
+   @if(!in_array(request()->path(),['login','register','password/email','password/reset'])) ================> ini aga penting sih..
+   <main class="container py-4">
+      <div class="row">
+            <div class="col-md-4">
+               @auth
+                  <a href="{{route('dus.create')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Add Disucssion</a>
+               @else
+                  <a href="{{route('login')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Sign In</a>
+               @endauth
+               <div class="card">
+                  <div class="card-header">
+                        Channels
+                  </div>
+                  <div class="card-body">
+                        <ul class="list-group">
+                           @foreach ($channels as $channel)
+                              <li class="list-group-item">
+                                    {{$channel->name}}
+                              </li>
+                           @endforeach
+                        </ul>
+                  </div>
+               </div>
+            </div>
+            <div class="col-md-8">
+               @yield('content')
+            </div>
+      </div>
+   </main>
+   @else
+   <main class="py-4">
+      @yield('content')
+   </main>
+   @endif
+
+4. kita ingin tambahkan div tepat dibawah discussion nya untuk supaya bisa direply, edit nya di show.blade.php
+   <div class="card">
+     <div class="card-header">Add a Reply</div>
+     <div class="card-body">
+         {{-- isinya form  --}}
+         <form action="" method="POST">
+             @csrf
+             <input type="hidden" name="reply" id="content">
+             <trix-editor input="reply"></trix-editor>
+         </form>
+     </div>
+   </div>
+
+5. copy paste css dan javascript trix ke dalam show.blade.php :
+
+   @section('css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/trix/1.2.1/trix.css">
+   @endsection
+
+   @section('js')
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/trix/1.2.1/trix.js"></script>
+   @endsection
+
+6. buat authentication, jika user sign in maka bisa muncul text editor, jika tidak munculkan button sign in
+   @auth
+     <div class="card-body">
+        {{-- isinya form  --}}
+        <form action="" method="POST">
+            @csrf
+            <input type="hidden" name="reply" id="content">
+            <trix-editor input="reply"></trix-editor>
+        </form>
+    </div>
+     @else
+        <a href="{{route('login')}}" class="btn btn-info">Sign in to Add Reply</a>
+     @endauth
+
+6. add button pada show.blade.php untuk submit reply
+   <button type="submit" class="btn btn-success my-2 btn-sm float-right"> Submit</button>
+
+7. php artisan make:controller RepliesController --resource
+8. Settiong route pada web.php
+   Route::resource('discussion/{discussion}/replies','RepliesController');
+
+9. Kan sudah kebuat route dan controllernya, sekarang setting action/href pada form yang ada di replies button
+   "{{route('replies.store', $discussion->id)}}"
+
+10. next lesson we are gonna save this reply to the database and display a list of a replies to the discussion
+
+========================================================================================================================
+
+Video 6.
+
+1. php artisan make:model Reply -m
+2. Setting the migration
+   $table->integer('user_id');
+   $table->integer('discussion_id');
+   $table->string('content');
+
+3. Setting the Reply Model,
+   public function owner(){
+      return $this->belongsTo(User::class, 'user_id');
+   }
+   public function discussion(){
+      return $this -> belongsTo(Discussion::class);
+   }
+
+4. Setting the User model has many reply,
+   public function reply(){
+      return $this -> hasMany(Reply::class);
+   }
+
+5. php artisan make:request CreateReplyRequest ----------> ini untuk membuat kalau field reply itu mandatory
+   setting CreateReplyRequest :
+   public function authorize(){
+      return true;
+   }
+   public function rules(){
+      return [
+         'content'
+      ];
+   }
+
+6. Setting public function store pada RepliesController,
+   public function store(CreateReplyRequest $request, $id){
+      auth()->user()->replies()->create([
+         'content'=>$request->content,
+         'discussion_id'=>$discussion->id
+      ]);
+
+      session()->flash('success','Reply added.');
+
+      return redirect()->back();
+   }
+
+7. php artisan migrate
+
+8. Setting Discussion Model that Has many replies.
+   Discussion.php
+   public function replies(){
+      return $this -> hasMany(Reply::class);
+   }
+
+9. Tampilkan replies dengan foreach di dalam show.blade.php
+   @foreach ($discussion->replies as $reply)
+    <div class="card my-5">
+        <div class="card-header">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <img width="40px" height="40px" style="border-radius: 50%" src="{{Gravatar::src($reply->owner->email)}}" alt="">
+                    <span>
+                        {{$reply->owner->name}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {!!$reply->content!!}
+        </div>
+    </div>
+   @endforeach
+
+10. buat paginate di foreach nya ,
+    @foreach ($discussion->replies()->paginate(3) as $reply)
+
+11. dan buat paginate links di bawah setelah endforeach
+    {{ $discussion->replies()->paginate(3)->links() }}
+
+========================================================================================================================
+
+Video  7.
+   ini pilihan, tapi untuk skripsi kayanya ga begitu urgent
+
+========================================================================================================================
+
+Video  8.
+
+1. php artisan make:notification NewReplyAdded
+
+2. check app\notification\NewReplyAdded.php
+
+   - via => mau dinotif kemana, email atau database
+   - toMail => ini nanti sentences yang akan masuk ke dalem email
+
+3. edit app\notification\NewReplyAdded.php
+
+   public function toMail($notifiable){
+      return (new MailMessage)
+         ->line('A new reply was added to your discussion.')
+         ->action('View Discussion', url('/'))                           //karena kita ingin view discussion, maka kita perlu passing variable dari discussion tersebut , maka harus disetting / pass parameter nya di public function __construct
+         ->line('Thank you for using our application')
+   }
+
+   public function __construct(Discuisson $discussion){  //===============> parameter yang di paranthesis ini itu menunjukan bahawa kita ingin menampilkan discussion yang ada new reply added nya
+      $this->discussion = $discussion;
+   }
+
+   lalu buat global variable nya di atas.
+
+   public $discussion;
+
+   @var Discussion
+
+   ----------------next step (masih dalam file yang sama di NewReplyAdded.php)----------
+
+   edit url yang ada di function toMail menjadi
+   action('View Discussion',route('discussion.show', $this-> discussion->slug))
+
+
+4. edit RepliesController.php
+   logic aja, kenapa sih harus diedit ?
+   ya jadi sebelum seseorang store something di reply, ini harus create notification juga .
+   jadi di antara create dan session flash, lu tambahin dah tu notification algo .
+
+   //create
+   $discussion -> author -> notify(new NewReplyAdded($discussion));   //==================> siapa yang dapet notify () yaitu the author of the discussion
+   //session flash
+
+5. buka https://mailtrap.io/inboxes
+   -create inboxe
+   -copy username password dan emailnya ke dalam .env
+
+---------------------Notification by email done-----------------------------------
+
+6. Database Notification
+   >>php artisan notifications:table
+   >>php artisan migrate
+
+7. Edit NewReplyAdded.php
+   public function via($notifiable){
+      return ['mail','database'];
+   }
+
+   ini berarti kita memiliki notifikasi ke email dan ke database
+
+8. Check database kita, pasti kita udah punya records dari notification table kan, tetapi pada kolom
+   data masih kosong.
+   nah kita setting tuh , supaya kolom array nya ada .
+
+   edit NewReplyAdded.php :
+   public funciton toArray($notifiable){
+      return[
+         'discussion'=>$this->discussion
+      ];
+   }
+
+   naah sudah kan , harusnya kolom data udah ga kosong tuh.
+   nah fungsi dari kolom data itu , supaya kita bisa display a link to a discussion.
+   caranya ? next step
+
+9. edit app.blade.php :
+   di dalam ul navbar-nav mr-auto tambahkan list class nav-item yang mana dalem nya itu :
+   {{ auth()->user()->unreadNotifications->count() }}
+
+   tambahkan span didalam li dan dalam span ada code di atas dengan class bade bade-info,
+
+   tambahkan Text Unread Notification
+
+   tambahkan @auth @endauth supaya notification hanya bisa dilihat hanya ketika kita login.
+
+   masukkan anchor tag setelah li ,
+
+   <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+         <span class="badge badge-info">
+            <a href="" class="nav-link">
+               {{auth()->user()->unreadNotifications->count() }}
+               Unread Notification
+            </a>
+         </span>
+      </li>
+   </ul>
+
+10. >>php artisan make:controller UsersController
+
+11. register the page in the route
+
+    edit web.php
+    Route::get('users/notifications', [UsersController::class,'notifications']);
+    ini maksudnya kita buat link yang menuju ke UsersController dengan function public function notifications
+
+12. Edit UsersController.php
+    buat function notifications
+    public function notifications(){
+       //mark all as read
+       //display all notifications
+    }
+
+    step
+       //mark all as read
+       //display all notifications
+    ada di video selanjutnya
+
+
+========================================================================================================================
+
+Video 9 :
+
+1.  Create folder users dan file notifications.blade.php pada resource view
+2.  Copas all html from home.blade.php ke notifications.blade.php
+3.  Ganti title nya menjadi 'Notifications' yang awalnya itu dashboard.
+4.  buat logic 'Mark as all read' pada users controller yang mana logic tersebut menunjukan bahwa
+    users telah read all notifications.
+    auth()->user()->unreadNotifications->markAsRead();
+5.  Buat logic "Display all notifications"
+    kita kan ingin menampilkan nih notifikasinya di page, berarti pakai return view dong,
+    nah , return nya ke mana ? ya ke users.notifications yang nomor satu itu kita buat ,
+    nah, tapi kita juga harus passing something ke dalam page tersebut, passing apa tuh ?
+    passing notifications
+    dari mana ?
+    dari user yang sudah login dan user tersebut memiliki notifications.
+
+    return view('users.notifications', [
+        'notifications'=>auth()->user()->notifications()->paginate(5)
+    ]);
+
+6.  looping notifications yang sudah kita dapat dari controller ke dalam notifications.blade.php
+    @foreach($notifications as $notification)
+         {{$notification -> type}}
+    @endforeach
+
+7.  masukkan foreach di atas ke dalam unordered list dengan class list-group
+    <ul class="list-group">
+        @foreach($notifications as $notification)
+            {{$notification -> type}}
+        @endforeach
+    </ul>
+
+8.  masuikkan for each ke dalam list dengan class list-group-item dan list group item di dalam ul dan di dalam foreach.
+   <ul class="list-group">
+                    @foreach($notifications as $notification)
+                        <li class="list-group-item">
+                            @if($notification->type === 'App\Notifications\NewReplyAdded')
+                                A new reply was added to your discussion Titled : {{$notification->data['discussion']['title']}}
+                                <a href="{{ route('dus.show', $notification->data['discussion']['id']) }}" class="btn btn-sm btn-info float-right" style="color: white">View Discussion</a>
+                            @endif
+                        </li>
+                    @endforeach
+
+            </ul>
+
+9.  Penjelasan :
+    Dari yang kita lakukan di atas, kita bisa menampilkan notifications, tetapi notification->type ini
+    outputnya seperti ini :
+        LaravelForum\Notifications\NewReplyAdded
+
+    lalu bagaimana kita bisa menampilkan ke user supaya user ngerti ?
+    kita edit $notifications->type menggunakan if,
+
+10. if $notification->type === LaravelForum\Notifications\NewReplyAdded
+        A new reply was added to your discussion titled : 'logic munculin title'
+        |tombol View reply|
+    endif
+
+    @if($notification->type === 'LaravelForum\Notifications\NewReplyAdded')
+         A new reply was added to your discussion
+         <a href="" class="btn btn-sm btn-info float-right">View Discussion</a>
+    @endif
+
+11. nomor 10 kan ada 'logic munculin title', nah itu gimana ?
+    lu tau kan kalau di notifications itu ada kolom data, ?
+    nah di dalam kolomn data itu terdapat judul dari diskusi lu , id nya, dll.
+    kita mau ngambil judul dari diskusi yang ada di kolom data pada table notifications.
+
+    jadinya gini :
+
+    {{$notifications->data['discussion']['title']}}
+
+    jadi nanti outpunya di notifications.blade.php itu seperti ini :
+     A new reply was added to your discussion titled : Diskusi Judul Rifan      |View Discussion|
+
+12. menambahkan route pada tombol View Discussion:
+    di nomor 9 kan kita bisa dapetin tuh title dari discussion nya apa, berarti kita juga bisa dapetin
+    id dari Disucssionnya apa dengan cara : $notifications->data['discussion']['id']
+    lalu kita route dengan passing is dari Disucssion , supaya bisa liat discussion berdasarkan id.
+
+    {{route('dus.show', $notifications->data['discussion']['id'])}}
+
+    penjelasan, tolong ke route discussion/discussion_id contoh : https://rifan.com/dus/2
+
+

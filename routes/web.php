@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use LaravelForum\Http\Controllers\DiscussionsController;
 
@@ -23,3 +24,4 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::resource('dus', 'DusController');
 Route::resource('discussion/{discussion}/replies','RepliesController');
+Route::get('users/notifications',[UsersController::class, 'notifications'])->name('users.notif');

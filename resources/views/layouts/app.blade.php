@@ -34,6 +34,16 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     <ul class="navbar-nav mr-auto">
+                        @auth
+                            <li class="nav-item">
+                                <a href="{{ route('users.notif') }}">
+                                    <span class="badge badge-info" style="color: white">
+                                        {{auth()->user()->unreadNotifications->count()}}
+                                        Unread Notifications
+                                    </span>
+                                </a>
+                            </li>
+                        @endauth
 
                     </ul>
 
@@ -81,9 +91,21 @@
                     @auth
                         <a href="{{route('dus.create')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Add Disucssion</a>
                     @else
+
                         <a href="{{route('login')}}" style="width: 100%;color:#fff" class="btn btn-info my-2">Sign In</a>
                     @endauth
-                    <div class="card">
+                    <div class="my-1">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <center>
+                                    <a href="{{route('dus.index')}}" style="width: 100%;" class="my-2">View Disucssion</a>
+                                </center>
+                            </li>
+                        </ul>
+
+                    </div>
+
+                    <div class="card my-2">
                         <div class="card-header">
                             Channels
                         </div>
