@@ -25,3 +25,5 @@ Route::get('/home', 'HomeController@index')->name('home');
 Route::resource('dus', 'DusController');
 Route::resource('discussion/{discussion}/replies','RepliesController');
 Route::get('users/notifications',[UsersController::class, 'notifications'])->name('users.notif');
+Route::resource('admin/users', 'AdminUsersController');
+Route::post('admin/users/store', 'AdminUsersController@store')->name('admin.users.store');

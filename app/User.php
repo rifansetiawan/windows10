@@ -17,7 +17,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password','role_id','is_active','phone_number','photo_id'
     ];
 
     /**
@@ -44,4 +44,12 @@ class User extends Authenticatable
      public function replies(){
         return $this -> hasMany(Reply::class);
      }
+     public function role(){
+         return $this -> belongsTo(Role::class);
+     }
+
+     public function photo(){
+         return $this -> belongsTo(Photo::class);
+     }
+
 }

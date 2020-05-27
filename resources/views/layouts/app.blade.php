@@ -105,6 +105,17 @@
 
                     </div>
 
+                    <div class="my-1">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <center>
+                                    <a href="/admin/users/" style="width: 100%;" class="my-2">Users (Penyewa Kamar)</a>
+                                </center>
+                            </li>
+                        </ul>
+
+                    </div>
+
                     <div class="card my-2">
                         <div class="card-header">
                             Channels
